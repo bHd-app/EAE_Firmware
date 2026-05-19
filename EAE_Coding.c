@@ -20,8 +20,8 @@
 #define PUMP_SPEED_HIGH         100U
 
 #define FAN_SPEED_OFF           0U
-#define FAN_SPEED_LOW           30U
-#define FAN_SPEED_MEDIUM        60U
+// #define FAN_SPEED_LOW           30U
+// #define FAN_SPEED_MEDIUM        60U
 #define FAN_SPEED_HIGH          100U
 
 #define PID_KP                  2.0f
@@ -92,7 +92,7 @@ static void control_pump_speed(const Inputs_t *inputs, Outputs_t *outputs)
 }
 
 /**
- * @brief Controls radiator fan speed based on coolant temperature.
+ * @brief Controls radiator fan speed using a basic PID output.
  */
 static void control_fan_speed(const Inputs_t *inputs, Outputs_t *outputs)
 {
@@ -100,18 +100,28 @@ static void control_fan_speed(const Inputs_t *inputs, Outputs_t *outputs)
     {
         outputs->fan_speed_percent = FAN_SPEED_OFF;
     }
-    else if (inputs->coolant_temp_c < TEMP_MEDIUM_C)
-    {
-        outputs->fan_speed_percent = FAN_SPEED_OFF;
-    }
-    else if (inputs->coolant_temp_c < TEMP_HIGH_C)
-    {
-        outputs->fan_speed_percent = FAN_SPEED_MEDIUM;
-    }
     else
     {
-        outputs->fan_speed_percent = FAN_SPEED_HIGH;
+        outputs->fan_speed_percent = PID_Controller(inputs->coolant_temp_c);
     }
+
+    /*
+     * Previous threshold based fan logic.
+     * Replaced by PID_Controller for a smoother fan output.
+     *
+     * else if (inputs->coolant_temp_c < TEMP_MEDIUM_C)
+     * {
+     *     outputs->fan_speed_percent = FAN_SPEED_OFF;
+     * }
+     * else if (inputs->coolant_temp_c < TEMP_HIGH_C)
+     * {
+     *     outputs->fan_speed_percent = FAN_SPEED_MEDIUM;
+     * }
+     * else
+     * {
+     *     outputs->fan_speed_percent = FAN_SPEED_HIGH;
+     * }
+     */
 }
 
 /**
@@ -205,8 +215,10 @@ int main(void)
         {false,25},
         {true, 30},
         {true, 38},
-        {true, 50},
-        {true, 65},
+        {true, 47},
+        {true, 53},
+        {true, 58},
+        {true, 61},
         {true, 80}
     };
 
