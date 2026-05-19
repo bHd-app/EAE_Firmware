@@ -26,6 +26,38 @@
 // #define FAN_SPEED_MEDIUM        60U
 #define FAN_SPEED_HIGH          100U
 
+
+// enumeration for state machine
+typedef enum
+{
+    COOLING_OFF,
+    COOLING_NORMAL,
+    COOLING_CRITICAL
+} CoolingStateMachine_t;
+
+/**
+ * @brief Selects the current cooling system state.
+ */
+static CoolingStateMachine_t get_cooling_state(const Inputs_t *inputs)
+{
+    CoolingStateMachine_t state;
+
+    if (inputs->ignition_on == false)
+    {
+        state = COOLING_OFF;
+    }
+    else if (inputs->coolant_temp_c >= TEMP_CRITICAL_C)
+    {
+        state = COOLING_CRITICAL;
+    }
+    else
+    {
+        state = COOLING_NORMAL;
+    }
+
+    return state;
+}
+
 /**
  * @brief Controls pump speed based on ignition state and coolant temperature.
  */
@@ -85,6 +117,7 @@ static void control_fan_speed(const Inputs_t *inputs, Outputs_t *outputs)
 /**
  * @brief Applies safety protection when coolant temperature is critical.
  */
+#if 0
 static void check_safety(const Inputs_t *inputs, Outputs_t *outputs)
 {
     if (inputs->coolant_temp_c >= TEMP_CRITICAL_C)
@@ -98,6 +131,7 @@ static void check_safety(const Inputs_t *inputs, Outputs_t *outputs)
         outputs->safety_shutdown = false;
     }
 }
+#endif
 
 /**
  * @brief Runs the cooling control logic.
@@ -110,7 +144,20 @@ void run_cooling_logic(const Inputs_t *inputs, Outputs_t *outputs)
 
     control_pump_speed(inputs, outputs);
     control_fan_speed(inputs, outputs);
+
+    if (get_cooling_state(inputs) == COOLING_CRITICAL)
+    {
+        outputs->pump_speed_percent = PUMP_SPEED_HIGH;
+        outputs->fan_speed_percent = FAN_SPEED_HIGH;
+        outputs->safety_shutdown = true;
+    }
+
+#if 0
+    /* Previous flow before adding the state machine. */
+    control_pump_speed(inputs, outputs);
+    control_fan_speed(inputs, outputs);
     check_safety(inputs, outputs);
+#endif
 }
 
 /**
