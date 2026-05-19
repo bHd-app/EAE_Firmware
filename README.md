@@ -35,13 +35,13 @@ src/
 ## Build
 
 ```sh
-cc -Wall -Wextra -Wpedantic -Iinclude EAE_Firmware.c src/pid.c src/canbus.c src/cli.c -o eae_firmware
+cc -Wall -Wextra -Wpedantic -Iinclude EAE_Firmware.c src/pid.c src/canbus.c src/cli.c -o binary/EAE_Firmware
 ```
 
 ## Run
 
 ```sh
-./eae_firmware
+./binary/EAE_Firmware
 ```
 
 At startup, type:
