@@ -22,6 +22,8 @@ The main control flow is in `EAE_Firmware.c`.
 
 ```text
 EAE_Firmware.c        Main application and cooling logic
+build.sh              Builds the project on Linux/macOS/MSYS2
+run.sh                Runs the firmware binary
 include/
   canbus.h           CAN bus simulator interface
   cli.h              CLI and coolant setpoint configuration interface
@@ -32,16 +34,11 @@ src/
   pid.c              Basic PID controller logic
 ```
 
-## Build
+## Build and Run
 
 ```sh
-cc -Wall -Wextra -Wpedantic -Iinclude EAE_Firmware.c src/pid.c src/canbus.c src/cli.c -o binary/EAE_Firmware
-```
-
-## Run
-
-```sh
-./binary/EAE_Firmware
+./build.sh
+./run.sh
 ```
 
 At startup, type:
