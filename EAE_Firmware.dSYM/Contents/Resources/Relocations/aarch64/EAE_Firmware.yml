@@ -1,5 +1,5 @@
 ---
 triple:          'arm64-apple-darwin'
-binary-path:     '/Users/behzad/Desktop/Job challenge/Git repo/EAE_Firmware'
+binary-path:     '/Users/behzad/Desktop/Job challenge/Git repo/eae_firmware'
 relocations:     []
 ...
