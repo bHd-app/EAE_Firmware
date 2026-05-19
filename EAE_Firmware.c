@@ -9,12 +9,8 @@
 #include <stdbool.h>
 
 #include "CANBUS.h"
+#include "cli.h"
 #include "pid.h"
-
-#define TEMP_LOW_C              35.0f
-#define TEMP_MEDIUM_C           45.0f
-#define TEMP_HIGH_C             60.0f
-#define TEMP_CRITICAL_C         75.0f
 
 #define PUMP_SPEED_OFF          0U
 #define PUMP_SPEED_LOW          40U
@@ -38,7 +34,7 @@ typedef enum
 /**
  * @brief Selects the current cooling system state.
  */
-static CoolingStateMachine_t get_cooling_state(const Inputs_t *inputs)
+static CoolingStateMachine_t get_cooling_state(const Inputs_t *inputs, const CoolingConfig_t *config)
 {
     CoolingStateMachine_t state;
 
@@ -46,7 +42,7 @@ static CoolingStateMachine_t get_cooling_state(const Inputs_t *inputs)
     {
         state = COOLING_OFF;
     }
-    else if (inputs->coolant_temp_c >= TEMP_CRITICAL_C)
+    else if (inputs->coolant_temp_c >= config->temp_critical_c)
     {
         state = COOLING_CRITICAL;
     }
@@ -84,17 +80,17 @@ static const char *get_cooling_state_name(CoolingStateMachine_t state)
 /**
  * @brief Controls pump speed based on ignition state and coolant temperature.
  */
-static void control_pump_speed(const Inputs_t *inputs, Outputs_t *outputs)
+static void control_pump_speed(const Inputs_t *inputs, Outputs_t *outputs, const CoolingConfig_t *config)
 {
     if (inputs->ignition_on == false)
     {
         outputs->pump_speed_percent = PUMP_SPEED_OFF;
     }
-    else if (inputs->coolant_temp_c < TEMP_LOW_C)
+    else if (inputs->coolant_temp_c < config->temp_low_c)
     {
         outputs->pump_speed_percent = PUMP_SPEED_LOW;
     }
-    else if (inputs->coolant_temp_c < TEMP_MEDIUM_C)
+    else if (inputs->coolant_temp_c < config->temp_medium_c)
     {
         outputs->pump_speed_percent = PUMP_SPEED_MEDIUM;
     }
@@ -107,7 +103,7 @@ static void control_pump_speed(const Inputs_t *inputs, Outputs_t *outputs)
 /**
  * @brief Controls radiator fan speed using a basic PID output.
  */
-static void control_fan_speed(const Inputs_t *inputs, Outputs_t *outputs)
+static void control_fan_speed(const Inputs_t *inputs, Outputs_t *outputs, const CoolingConfig_t *config)
 {
     if (inputs->ignition_on == false)
     {
@@ -115,18 +111,18 @@ static void control_fan_speed(const Inputs_t *inputs, Outputs_t *outputs)
     }
     else
     {
-        outputs->fan_speed_percent = PID_Controller(inputs->coolant_temp_c);
+        outputs->fan_speed_percent = PID_Controller(inputs->coolant_temp_c, config->temp_medium_c);
     }
 
     /*
      * Previous threshold based fan logic.
      * Replaced by PID_Controller for a smoother fan output.
      *
-     * else if (inputs->coolant_temp_c < TEMP_MEDIUM_C)
+     * else if (inputs->coolant_temp_c < config->temp_medium_c)
      * {
      *     outputs->fan_speed_percent = FAN_SPEED_OFF;
      * }
-     * else if (inputs->coolant_temp_c < TEMP_HIGH_C)
+     * else if (inputs->coolant_temp_c < config->temp_high_c)
      * {
      *     outputs->fan_speed_percent = FAN_SPEED_MEDIUM;
      * }
@@ -143,7 +139,7 @@ static void control_fan_speed(const Inputs_t *inputs, Outputs_t *outputs)
 #if 0
 static void check_safety(const Inputs_t *inputs, Outputs_t *outputs)
 {
-    if (inputs->coolant_temp_c >= TEMP_CRITICAL_C)
+    if (inputs->coolant_temp_c >= config->temp_critical_c)
     {
         outputs->safety_shutdown = true;
         outputs->pump_speed_percent = PUMP_SPEED_HIGH;
@@ -159,16 +155,16 @@ static void check_safety(const Inputs_t *inputs, Outputs_t *outputs)
 /**
  * @brief Runs the cooling control logic.
  */
-void run_cooling_logic(const Inputs_t *inputs, Outputs_t *outputs)
+void run_cooling_logic(const Inputs_t *inputs, Outputs_t *outputs, const CoolingConfig_t *config)
 {
     outputs->pump_speed_percent = PUMP_SPEED_OFF;
     outputs->fan_speed_percent = FAN_SPEED_OFF;
     outputs->safety_shutdown = false;
 
-    control_pump_speed(inputs, outputs);
-    control_fan_speed(inputs, outputs);
+    control_pump_speed(inputs, outputs, config);
+    control_fan_speed(inputs, outputs, config);
 
-    if (get_cooling_state(inputs) == COOLING_CRITICAL)
+    if (get_cooling_state(inputs, config) == COOLING_CRITICAL)
     {
         outputs->pump_speed_percent = PUMP_SPEED_HIGH;
         outputs->fan_speed_percent = FAN_SPEED_HIGH;
@@ -186,11 +182,11 @@ void run_cooling_logic(const Inputs_t *inputs, Outputs_t *outputs)
 /**
  * @brief Prints cooling system status.
  */
-static void print_status(const Inputs_t *inputs, const Outputs_t *outputs)
+static void print_status(const Inputs_t *inputs, const Outputs_t *outputs, const CoolingConfig_t *config)
 {
     printf("Ignition: %s\n", inputs->ignition_on ? "ON" : "OFF");
     printf("Coolant Temperature: %.1f C\n", inputs->coolant_temp_c);
-    printf("Cooling State: %s\n", get_cooling_state_name(get_cooling_state(inputs)));
+    printf("Cooling State: %s\n", get_cooling_state_name(get_cooling_state(inputs, config)));
     printf("Pump Speed: %u%%\n", outputs->pump_speed_percent);
     printf("Fan Speed: %u%%\n", outputs->fan_speed_percent);
     printf("Safety Shutdown: %s\n", outputs->safety_shutdown ? "ACTIVE" : "INACTIVE");
@@ -200,6 +196,8 @@ static void print_status(const Inputs_t *inputs, const Outputs_t *outputs)
 
 int main(void)
 {
+    CoolingConfig_t config = CLI_GetCoolingConfig();
+
     Inputs_t test_cases[] =
     {
         {false,25},
@@ -217,8 +215,8 @@ int main(void)
 
     for (int i = 0; i < number_of_tests; i++)
     {
-        run_cooling_logic(&test_cases[i], &outputs);
-        print_status(&test_cases[i], &outputs);
+        run_cooling_logic(&test_cases[i], &outputs, &config);
+        print_status(&test_cases[i], &outputs, &config);
     }
 
     return 0;
