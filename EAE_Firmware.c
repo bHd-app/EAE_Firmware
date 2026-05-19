@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "CANBUS.h"
+#include "canbus.h"
 #include "cli.h"
 #include "pid.h"
 

@@ -1,5 +1,5 @@
 /**
- * @file CANBUS.h
+ * @file canbus.h
  * @brief CAN bus simulator interface.
  */
 

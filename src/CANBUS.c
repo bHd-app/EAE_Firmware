@@ -1,12 +1,12 @@
 /**
- * @file CANBUS.c
+ * @file canbus.c
  * @brief Basic CAN bus frame simulator.
  */
 
 #include <stdio.h>
 #include <stdint.h>
 
-#include "CANBUS.h"
+#include "canbus.h"
 
 #define CAN_INPUT_FRAME_ID      0x100U
 #define CAN_OUTPUT_FRAME_ID     0x101U

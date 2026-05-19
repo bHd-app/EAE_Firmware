@@ -23,11 +23,11 @@ The main control flow is in `EAE_Firmware.c`.
 ```text
 EAE_Firmware.c        Main application and cooling logic
 include/
-  CANBUS.h           CAN bus simulator interface
+  canbus.h           CAN bus simulator interface
   cli.h              CLI and coolant setpoint configuration interface
   pid.h              PID controller interface
 src/
-  CANBUS.c           CAN frame conversion and printing
+  canbus.c           CAN frame conversion and printing
   cli.c              Interactive terminal menu
   pid.c              Basic PID controller logic
 ```
@@ -35,7 +35,7 @@ src/
 ## Build
 
 ```sh
-cc -Wall -Wextra -Wpedantic -Iinclude EAE_Firmware.c src/pid.c src/CANBUS.c src/cli.c -o eae_firmware
+cc -Wall -Wextra -Wpedantic -Iinclude EAE_Firmware.c src/pid.c src/canbus.c src/cli.c -o eae_firmware
 ```
 
 ## Run
