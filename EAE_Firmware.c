@@ -9,6 +9,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "pid.h"
+
 #define TEMP_LOW_C              35.0f
 #define TEMP_MEDIUM_C           45.0f
 #define TEMP_HIGH_C             60.0f
@@ -23,11 +25,6 @@
 // #define FAN_SPEED_LOW           30U
 // #define FAN_SPEED_MEDIUM        60U
 #define FAN_SPEED_HIGH          100U
-
-#define PID_KP                  2.0f
-#define PID_KI                  0.5f
-#define PID_KD                  0.1f
-#define PID_TARGET_TEMP_C       45.0f
 
 #define CAN_INPUT_FRAME_ID      0x100U
 #define CAN_OUTPUT_FRAME_ID     0x101U
@@ -45,28 +42,6 @@ typedef struct
     unsigned int fan_speed_percent;
     bool safety_shutdown;
 } Outputs_t;
-
-/**
- * @brief Basic PID example for cooling control.
- */
-unsigned int PID_Controller(float current_temp_c)
-{
-    float error = current_temp_c - PID_TARGET_TEMP_C;
-    float integral = error;
-    float derivative = error;
-    float output = (PID_KP * error) + (PID_KI * integral) + (PID_KD * derivative);
-
-    if (output < 0.0f)
-    {
-        output = 0.0f;
-    }
-    else if (output > 100.0f)
-    {
-        output = 100.0f;
-    }
-
-    return (unsigned int)output;
-}
 
 /**
  * @brief Controls pump speed based on ignition state and coolant temperature.
