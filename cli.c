@@ -10,6 +10,9 @@
 
 #define CLI_INPUT_SIZE          32U
 
+/**
+ * @brief Prints the current coolant temperature setpoints.
+ */
 static void print_config(const CoolingConfig_t *config)
 {
     printf("\nCurrent coolant setpoints:\n");
@@ -19,6 +22,9 @@ static void print_config(const CoolingConfig_t *config)
     printf("4. Critical : %.1f C\n", config->temp_critical_c);
 }
 
+/**
+ * @brief Reads a new floating point value from the terminal.
+ */
 static void set_value(float *value)
 {
     char input[CLI_INPUT_SIZE];
@@ -38,6 +44,9 @@ static void set_value(float *value)
     }
 }
 
+/**
+ * @brief Allows the user to edit coolant temperature setpoints.
+ */
 static void config_menu(CoolingConfig_t *config)
 {
     char input[CLI_INPUT_SIZE];
@@ -87,6 +96,9 @@ static void config_menu(CoolingConfig_t *config)
     }
 }
 
+/**
+ * @brief Gets cooling setpoints from a simple terminal menu.
+ */
 CoolingConfig_t CLI_GetCoolingConfig(void)
 {
     char input[CLI_INPUT_SIZE];
