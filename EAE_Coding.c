@@ -24,6 +24,11 @@
 #define FAN_SPEED_MEDIUM        60U
 #define FAN_SPEED_HIGH          100U
 
+#define PID_KP                  2.0f
+#define PID_KI                  0.5f
+#define PID_KD                  0.1f
+#define PID_TARGET_TEMP_C       45.0f
+
 #define CAN_INPUT_FRAME_ID      0x100U
 #define CAN_OUTPUT_FRAME_ID     0x101U
 #define CAN_FRAME_DATA_SIZE     8U
@@ -40,6 +45,28 @@ typedef struct
     unsigned int fan_speed_percent;
     bool safety_shutdown;
 } Outputs_t;
+
+/**
+ * @brief Basic PID example for cooling control.
+ */
+unsigned int PID_Controller(float current_temp_c)
+{
+    float error = current_temp_c - PID_TARGET_TEMP_C;
+    float integral = error;
+    float derivative = error;
+    float output = (PID_KP * error) + (PID_KI * integral) + (PID_KD * derivative);
+
+    if (output < 0.0f)
+    {
+        output = 0.0f;
+    }
+    else if (output > 100.0f)
+    {
+        output = 100.0f;
+    }
+
+    return (unsigned int)output;
+}
 
 /**
  * @brief Controls pump speed based on ignition state and coolant temperature.
@@ -143,13 +170,13 @@ static void CANBUS_Simulator(const Inputs_t *inputs, const Outputs_t *outputs)
         };
 
     printf("CAN Received: [0x%03X", CAN_INPUT_FRAME_ID); // First print Id then all 8 bytes -- all frames converting to hex
-    for ( int i = 0; i < CAN_FRAME_DATA_SIZE; i++)
+    for (unsigned int i = 0U; i < CAN_FRAME_DATA_SIZE; i++)
     {
         printf(" 0x%02X", received_frame[i]);
     }
 
     printf("]\nCAN Send:     [0x%03X", CAN_OUTPUT_FRAME_ID);
-    for ( int i = 0; i < CAN_FRAME_DATA_SIZE; i++)
+    for (unsigned int i = 0U; i < CAN_FRAME_DATA_SIZE; i++)
     {
         printf(" 0x%02X", send_frame[i]);
     }
