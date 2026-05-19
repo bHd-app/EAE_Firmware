@@ -1,5 +1,5 @@
 /**
- * @file EAE_Coding.c
+ * @file EAE_Firmware.c
  * @author Mahmoud Bahmani
  * @date May 18, 2026
  * @brief Cooling system control logic.
