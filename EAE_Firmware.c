@@ -59,6 +59,29 @@ static CoolingStateMachine_t get_cooling_state(const Inputs_t *inputs)
 }
 
 /**
+ * @brief Converts cooling state to text.
+ */
+static const char *get_cooling_state_name(CoolingStateMachine_t state)
+{
+    const char *state_name = "UNKNOWN";
+
+    if (state == COOLING_OFF)
+    {
+        state_name = "OFF";
+    }
+    else if (state == COOLING_NORMAL)
+    {
+        state_name = "NORMAL";
+    }
+    else if (state == COOLING_CRITICAL)
+    {
+        state_name = "CRITICAL";
+    }
+
+    return state_name;
+}
+
+/**
  * @brief Controls pump speed based on ignition state and coolant temperature.
  */
 static void control_pump_speed(const Inputs_t *inputs, Outputs_t *outputs)
@@ -167,6 +190,7 @@ static void print_status(const Inputs_t *inputs, const Outputs_t *outputs)
 {
     printf("Ignition: %s\n", inputs->ignition_on ? "ON" : "OFF");
     printf("Coolant Temperature: %.1f C\n", inputs->coolant_temp_c);
+    printf("Cooling State: %s\n", get_cooling_state_name(get_cooling_state(inputs)));
     printf("Pump Speed: %u%%\n", outputs->pump_speed_percent);
     printf("Fan Speed: %u%%\n", outputs->fan_speed_percent);
     printf("Safety Shutdown: %s\n", outputs->safety_shutdown ? "ACTIVE" : "INACTIVE");
